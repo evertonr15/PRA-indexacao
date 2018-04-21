@@ -7,8 +7,16 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
+
+import MergeSort.KWayMerging;
 
 public class GerenciadorDeArquivo {
 
@@ -153,6 +161,60 @@ public class GerenciadorDeArquivo {
 				retornoDaLeitura.append("\nTotal do pedido: R$ " + decimalFormater.format(Float.valueOf(registroDoPedido[4]))+ "\n");
 			}
 			GUI.campoDeRetornoPaginacao.setText(retornoDaLeitura.toString());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+	
+	public void recuperarArquivoGUIIndexados() {// Recupera todo o arquivo
+		String linhaAtual = null;
+		DecimalFormat decimalFormater = new DecimalFormat("#,###.00");
+		String[] registroDoPedido;
+		String produtosToString;
+		String[] produtos;
+		String[] produtosSplit;
+		HashMap<Integer, Pedido> pedidos = new HashMap<>();
+		try {
+			while ((linhaAtual = buffReader.readLine()) != null) {// enquanto não ler até a ultima linha
+				List<Produtos> listaDeProdutos = new ArrayList<>();
+				registroDoPedido = linhaAtual.split(";");
+				
+				produtosToString = registroDoPedido[5].substring(1, registroDoPedido[5].length() - 1);
+				produtos = produtosToString.split("/");
+				for (Object produto : produtos) {
+					if (!produto.toString().equals("")) {
+						produtosSplit = ((String) produto).split(":");
+						listaDeProdutos.add(new Produtos(Integer.valueOf(produtosSplit[0]), Float.valueOf(produtosSplit[1].trim().substring(0, produtosSplit[1].length() - 2))));
+					}
+				}
+				Calendar data = Calendar.getInstance();
+				data.setTime(new Date(registroDoPedido[3]));
+				pedidos.put(Integer.valueOf(registroDoPedido[0]), new Pedido(Integer.valueOf(registroDoPedido[0]), new Vendedor(Integer.valueOf(registroDoPedido[2])), new Cliente(Integer.valueOf(registroDoPedido[1])), data, listaDeProdutos));
+			}
+			
+			List<Integer> listaCdClienteA = new ArrayList<>();
+			List<Integer> listaCdClienteB = new ArrayList<>();
+			
+			int i = 0;
+			Set<Integer> codigosPedido = pedidos.keySet();
+			for (Integer codigoPedido : codigosPedido){
+				if(i < pedidos.size() / 2){
+					listaCdClienteA.add(pedidos.get(codigoPedido).getCliente().getCodigoCliente());
+				} else {
+					listaCdClienteB.add(pedidos.get(codigoPedido).getCliente().getCodigoCliente());
+				}
+				
+				i++;
+			}
+			Collections.sort(listaCdClienteA);
+			Collections.sort(listaCdClienteB);
+			
+			List<List<Integer>> listasDePedidos = new ArrayList<>();
+			listasDePedidos.add(listaCdClienteA);
+			listasDePedidos.add(listaCdClienteB);
+			
+			KWayMerging indexação = new KWayMerging();
+			System.out.println("Merged List:" + indexação.mergeKList(listasDePedidos));
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}

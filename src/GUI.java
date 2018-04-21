@@ -234,7 +234,7 @@ public class GUI {
 						GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n###########################################################################################################################");
 						GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\nOpção selecionada: Consultar base");
 						GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n\nRegistros: ");
-						arquivoDeVendas.recuperarArquivoGUI();// Lê arquivo todo
+						arquivoDeVendas.recuperarArquivoGUIIndexados();// Lê arquivo todo
 						arquivoDeVendas.fecharArquivoParaLeitura();
 						long tempoExecucao = Calendar.getInstance().getTimeInMillis() - tempoInicial;
 						GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n\nTempo de Execução: "+tempoExecucao+" milissegundos");
