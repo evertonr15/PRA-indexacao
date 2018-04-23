@@ -7,7 +7,7 @@ public class Cliente {
 		this.codigoCliente = codigoCliente;
 	}
 
-	public int getCodigoCliente() {
+	public Integer getCodigoCliente() {
 		return codigoCliente;
 	}
 }
