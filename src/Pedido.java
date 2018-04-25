@@ -54,6 +54,10 @@ public class Pedido {
 	public void setCliente(Cliente cliente) {
 		this.cliente = cliente;
 	}
+	
+	public Integer getCodigoCliente() {
+		return cliente.getCodigoCliente();
+	}
 
 	public String getDataPedido() {
 		return dataPedido;

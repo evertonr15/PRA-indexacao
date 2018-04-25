@@ -7,21 +7,25 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.text.DecimalFormat;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Stream;
 
-import MergeSort.KWayMerging;
+import MergeSort.Ordena;
 
 public class GerenciadorDeArquivo {
 
@@ -173,163 +177,18 @@ public class GerenciadorDeArquivo {
 	
 	public void recuperarArquivoGUIIndexados() {// Recupera todo o arquivo
 		String linhaAtual = null;
-		DecimalFormat decimalFormater = new DecimalFormat("#,###.00");
 		String[] registroDoPedido;
-		String produtosToString;
-		String[] produtos;
-		String[] produtosSplit;
-		HashMap<Integer, Pedido> pedidos = new HashMap<>();
-		try {
-			while ((linhaAtual = buffReader.readLine()) != null) {// enquanto não ler até a ultima linha
-				List<Produtos> listaDeProdutos = new ArrayList<>();
-				registroDoPedido = linhaAtual.split(";");
-				
-				produtosToString = registroDoPedido[5].substring(1, registroDoPedido[5].length() - 1);
-				produtos = produtosToString.split("/");
-				for (Object produto : produtos) {
-					if (!produto.toString().equals("")) {
-						produtosSplit = ((String) produto).split(":");
-						listaDeProdutos.add(new Produtos(Integer.valueOf(produtosSplit[0]), Float.valueOf(produtosSplit[1].trim().substring(0, produtosSplit[1].length() - 2))));
-					}
-				}
-				Calendar data = Calendar.getInstance();
-				data.setTime(new Date(registroDoPedido[3]));
-				pedidos.put(Integer.valueOf(registroDoPedido[0]), new Pedido(Integer.valueOf(registroDoPedido[0]), new Vendedor(Integer.valueOf(registroDoPedido[2])), new Cliente(Integer.valueOf(registroDoPedido[1])), data, listaDeProdutos));
-			}
-			
-			List<Integer> listaCdClienteA = new ArrayList<>();
-			List<Integer> listaCdClienteB = new ArrayList<>();
-			
-			int i = 0;
-			Set<Integer> codigosPedido = pedidos.keySet();
-			for (Integer codigoPedido : codigosPedido){
-				if(i < pedidos.size() / 2){
-					listaCdClienteA.add(pedidos.get(codigoPedido).getCliente().getCodigoCliente());
-				} else {
-					listaCdClienteB.add(pedidos.get(codigoPedido).getCliente().getCodigoCliente());
-				}
-				
-				i++;
-			}
-			Collections.sort(listaCdClienteA);
-			Collections.sort(listaCdClienteB);
-			
-			List<List<Integer>> listasDePedidos = new ArrayList<>();
-			listasDePedidos.add(listaCdClienteA);
-			listasDePedidos.add(listaCdClienteB);
-			
-			KWayMerging indexação = new KWayMerging();
-			System.out.println("Merged List:" + indexação.mergeKList(listasDePedidos));
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-	}
-	
-	public void recuperarArquivoGUIIndexados2() {// Recupera todo o arquivo
-		String linhaAtual = null;
-		DecimalFormat decimalFormater = new DecimalFormat("#,###.00");
-		String[] registroDoPedido;
-		String produtosToString;
-		String[] produtos;
-		String[] produtosSplit;
-		HashMap<Integer, Pedido> pedidos = new HashMap<>();
-		try {
-			while ((linhaAtual = buffReader.readLine()) != null) {// enquanto não ler até a ultima linha
-				List<Produtos> listaDeProdutos = new ArrayList<>();
-				registroDoPedido = linhaAtual.split(";");
-				
-				Calendar data = Calendar.getInstance();
-				data.setTime(new Date(registroDoPedido[3]));
-				pedidos.put(Integer.valueOf(registroDoPedido[0]), new Pedido(Integer.valueOf(registroDoPedido[0]), new Vendedor(Integer.valueOf(registroDoPedido[2])), new Cliente(Integer.valueOf(registroDoPedido[1])), data, listaDeProdutos));
-			}
-			
-			List<Integer> listaCdClienteA = new ArrayList<>();
-			List<Integer> listaCdClienteB = new ArrayList<>();
-			
-			int i = 0;
-			Set<Integer> codigosPedido = pedidos.keySet();
-			for (Integer codigoPedido : codigosPedido){
-				if(i < pedidos.size() / 2){
-					listaCdClienteA.add(pedidos.get(codigoPedido).getCliente().getCodigoCliente());
-				} else {
-					listaCdClienteB.add(pedidos.get(codigoPedido).getCliente().getCodigoCliente());
-				}
-				
-				i++;
-			}
-			pedidos.clear();
-			Collections.sort(listaCdClienteA);
-			Collections.sort(listaCdClienteB);
-			
-			List<List<Integer>> listasDePedidos = new ArrayList<>();
-			listasDePedidos.add(listaCdClienteA);
-			listasDePedidos.add(listaCdClienteB);
-		    
-			KWayMerging indexacao = new KWayMerging();
-			System.out.println("Merged List:" + indexacao.mergeKList(listasDePedidos));
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-	}
-	
-	public void recuperarArquivoGUIIndexados3() {// Recupera todo o arquivo
-		String linhaAtual = null;
-		String[] registroDoPedido;
-		HashMap<Integer, Pedido> pedidos = new HashMap<>();
-		try {
-			while ((linhaAtual = buffReader.readLine()) != null) {// enquanto não ler até a ultima linha
-				List<Produtos> listaDeProdutos = new ArrayList<>();
-				registroDoPedido = linhaAtual.split(";");
-
-				Calendar data = Calendar.getInstance();
-				data.setTime(new Date(registroDoPedido[3]));
-				pedidos.put(Integer.valueOf(registroDoPedido[0]), new Pedido(Integer.valueOf(registroDoPedido[0]), new Vendedor(Integer.valueOf(registroDoPedido[2])), new Cliente(Integer.valueOf(registroDoPedido[1])), data, listaDeProdutos));
-			}
-			
-			List<Integer> listaCdClienteA = new ArrayList<>();
-			List<Integer> listaCdClienteB = new ArrayList<>();
-			
-			int i = 0;
-			ArrayList<Map.Entry<?, Pedido>> l = new ArrayList(pedidos.entrySet());
-	       Collections.sort(l, new Comparator<Map.Entry<?, Pedido>>(){
-
-	         public int compare(Map.Entry<?, Pedido> o1, Map.Entry<?, Pedido> o2) {
-	            return o1.getValue().getCliente().getCodigoCliente().compareTo(o2.getValue().getCliente().getCodigoCliente());
-	        }});
-	       
-	       ArrayList<Entry<?, Pedido>> codigosPedido = l;
-			for (Entry<?, Pedido> codigoPedido : codigosPedido){
-				if(i < pedidos.size() / 2){
-					listaCdClienteA.add(codigoPedido.getValue().getCliente().getCodigoCliente());
-				} else {
-					listaCdClienteB.add(codigoPedido.getValue().getCliente().getCodigoCliente());
-				}
-				
-				i++;
-			}
-			pedidos.clear();
-			
-			List<List<Integer>> listasDePedidos = new ArrayList<>();
-			listasDePedidos.add(listaCdClienteA);
-			listasDePedidos.add(listaCdClienteB);   
-		    
-			KWayMerging indexacao = new KWayMerging();
-			System.out.println("Merged List:" + indexacao.mergeKList(listasDePedidos));
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-	}
-	
-	public void recuperarArquivoGUIIndexados4() {// Recupera todo o arquivo
-		String linhaAtual = null;
-		String[] registroDoPedido;
-		//HashMap<Integer, Pedido> pedidos = new HashMap<>();
 		
-		SortedMap<Integer, Pedido> map = new TreeMap<Integer, Pedido>(new Comparator<Integer>() {
-	        public int compare(Integer o1, Integer o2) {
-	            return o2.compareTo(o1);
-	        }
-	    });
+		TreeSet<Map.Entry<Integer, Pedido>> pedidos = new TreeSet<>(new Comparator<Map.Entry<Integer, Pedido>>()
+		  {
+		    @Override
+		    public int compare(Map.Entry<Integer, Pedido> o1, Map.Entry<Integer, Pedido> o2)
+		    {
+		      int valueComparison = o1.getValue().getCodigoCliente().compareTo(o2.getValue().getCodigoCliente());
+		      return valueComparison == 0 ? o1.getKey().compareTo(o2.getKey()) : valueComparison;
+		    }
+		  });
+		
 		try {
 			while ((linhaAtual = buffReader.readLine()) != null) {// enquanto não ler até a ultima linha
 				List<Produtos> listaDeProdutos = new ArrayList<>();
@@ -337,18 +196,16 @@ public class GerenciadorDeArquivo {
 
 				Calendar data = Calendar.getInstance();
 				data.setTime(new Date(registroDoPedido[3]));
-				//pedidos.put(Integer.valueOf(registroDoPedido[0]), new Pedido(Integer.valueOf(registroDoPedido[0]), new Vendedor(Integer.valueOf(registroDoPedido[2])), new Cliente(Integer.valueOf(registroDoPedido[1])), data, listaDeProdutos));
-				map.put(Integer.valueOf(registroDoPedido[1]), new Pedido(Integer.valueOf(registroDoPedido[0]), new Vendedor(Integer.valueOf(registroDoPedido[2])), new Cliente(Integer.valueOf(registroDoPedido[1])), data, listaDeProdutos));
+				pedidos.add(new AbstractMap.SimpleEntry<>(Integer.valueOf(registroDoPedido[0]), new Pedido(Integer.valueOf(registroDoPedido[0]), new Vendedor(Integer.valueOf(registroDoPedido[2])), new Cliente(Integer.valueOf(registroDoPedido[1])), data, listaDeProdutos)));
 			}
 			
 			List<Integer> listaCdClienteA = new ArrayList<>();
 			List<Integer> listaCdClienteB = new ArrayList<>();
 			
 			int i = 0;
-	       
-	       Set<Entry<Integer, Pedido>> codigosPedido = map.entrySet();
-			for (Entry<?, Pedido> codigoPedido : codigosPedido){
-				if(i < map.size() / 2){
+			int countPedidos = pedidos.size();
+			for (Entry<?, Pedido> codigoPedido : pedidos){
+				if(i < countPedidos / 2){
 					listaCdClienteA.add(codigoPedido.getValue().getCliente().getCodigoCliente());
 				} else {
 					listaCdClienteB.add(codigoPedido.getValue().getCliente().getCodigoCliente());
@@ -356,14 +213,14 @@ public class GerenciadorDeArquivo {
 				
 				i++;
 			}
-			map.clear();
+			pedidos.clear();
 			
 			List<List<Integer>> listasDePedidos = new ArrayList<>();
 			listasDePedidos.add(listaCdClienteA);
 			listasDePedidos.add(listaCdClienteB);   
 		    
-			KWayMerging indexacao = new KWayMerging();
-			System.out.println("Merged List:" + indexacao.mergeKList(listasDePedidos));
+			Ordena indexacao = new Ordena();
+			System.out.println("Merged List:" + indexacao.misturaLista(listasDePedidos));
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}

@@ -3,10 +3,10 @@ package MergeSort;
 
 import java.util.Comparator;
 
-public class NodeComparator implements Comparator<Node> {
+public class NoComparador implements Comparator<No> {
 
 	@Override
-	public int compare(Node arg0, Node arg1) {
+	public int compare(No arg0, No arg1) {
 		return arg0.getData().compareTo(arg1.getData());
 	}
 }

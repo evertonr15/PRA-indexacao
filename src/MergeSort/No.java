@@ -1,12 +1,12 @@
 package MergeSort;
 
-public class Node {
+public class No {
 	Integer data;
 	Integer fromListIndex;
 
-	public Node(int data, int indexList) {
+	public No(int data, int listaIndices) {
 		this.data = data;
-		this.fromListIndex = indexList;
+		this.fromListIndex = listaIndices;
 	}
 
 	public Integer getData() {
@@ -21,8 +21,8 @@ public class Node {
 		return fromListIndex;
 	}
 
-	public void setIndexList(int indexList) {
-		this.fromListIndex = indexList;
+	public void setIndexList(int listaIndices) {
+		this.fromListIndex = listaIndices;
 	}
 
 }
