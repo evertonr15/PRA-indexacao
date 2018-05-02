@@ -1,20 +1,20 @@
-package MergeSort;
+
 
 public class No {
-	Integer data;
+	Pedido pedido;
 	Integer fromListIndex;
 
-	public No(int data, int listaIndices) {
-		this.data = data;
+	public No(Pedido pedido, int listaIndices) {
+		this.pedido = pedido;
 		this.fromListIndex = listaIndices;
 	}
 
-	public Integer getData() {
-		return data;
+	public Pedido getPedido() {
+		return this.pedido;
 	}
 
-	public void setData(int data) {
-		this.data = data;
+	public void setPedido(Pedido pedido) {
+		this.pedido = pedido;
 	}
 
 	public int getIndexList() {

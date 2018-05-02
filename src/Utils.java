@@ -22,7 +22,7 @@ public abstract class Utils {
 			if (repete == 0) {
 				produtos.add(produto);
 			}
-		} while (produtos.size() < 100); // define uma lista de 100 produtos
+		} while (produtos.size() < 2); // define uma lista de 100 produtos
 
 		return produtos;
 	}

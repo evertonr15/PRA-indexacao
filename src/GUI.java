@@ -24,6 +24,8 @@ public class GUI {
 	static JTextField campoDeEntradaDoUsuario = new JTextField();
 	
 	static JTextField campoDeEntradaDoUsuarioPaginacao = new JTextField();
+	
+	static JTextField campoDeEntradaDoUsuarioListas = new JTextField();
 
 	static GerenciadorDeArquivo arquivoDeVendas;
 	
@@ -160,99 +162,117 @@ public class GUI {
 		btnConsultaGeral.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				campoDeEntradaDoUsuarioPaginacao.setText("0");
+				campoDeEntradaDoUsuarioPaginacao.setText("50");
+				campoDeEntradaDoUsuarioListas.setText("2");
 				paginaAtual = 0;
-				Object[] entradaDoUsuário = {
-					    "Quantidade de registros por página (0 - Sem paginação): ", campoDeEntradaDoUsuarioPaginacao
-				};// acão relacionado ao botão consultar base
+				Object[] entradaDoUsuário = {"Quantidade de registros por página: ", campoDeEntradaDoUsuarioPaginacao, "Quantidade de listas - Mínimo 2: ", campoDeEntradaDoUsuarioListas};// acão relacionado ao botão consultar base
 
-				Integer opt = JOptionPane.showOptionDialog(null, entradaDoUsuário, "Consulta", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null); // Caixa de diálogo para consulta dos dados
+				Integer opt = JOptionPane.showOptionDialog(null, entradaDoUsuário, "Consulta", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, new String[]{"Ordenar por código do cliente", "Ordenar por código do cliente + Data do pedido"}, null); // Caixa de diálogo para consulta dos dados
+				int tipoDeOrdenacao;
 				if (opt == 0) {
+					tipoDeOrdenacao = 1;
+				} else {
+					tipoDeOrdenacao = 2;
+				}
 					
-					final int qtdRegistroPorPagina = Integer.parseInt(campoDeEntradaDoUsuarioPaginacao.getText().trim()); // verifica a qntd. de registros por página
-					
-					final JButton btnAnterior = new JButton("Anterior"); // Criação do botão anterior
-					btnAnterior.setToolTipText("");
-					btnAnterior.addActionListener(new ActionListener() {// Ação ao usar o botão
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							if(paginaAtual > 0){// Verifica se não é a primeira página 
-								GUI.paginaAtual--;
-								GUI.campoDeRetornoPaginacao.setText(null);
-								arquivoDeVendas.abrirArquivoParaLeitura();
-								arquivoDeVendas.recuperarArquivoPaginacaoGUI(qtdRegistroPorPagina);
-								arquivoDeVendas.fecharArquivoParaLeitura();
-								GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n   " + "Página: " + (GUI.paginaAtual+1)+"/"+GUI.totalPaginacao);
-							}
-						}
-					});
-					
-					final JButton btnProximo = new JButton("Próximo");// Criação do botão próximo
-					btnProximo.setToolTipText("");
-					btnProximo.addActionListener(new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-								GUI.paginaAtual++;
-								GUI.campoDeRetornoPaginacao.setText(null);
-								arquivoDeVendas.abrirArquivoParaLeitura();
-								arquivoDeVendas.recuperarArquivoPaginacaoGUI(qtdRegistroPorPagina);
-								if(GUI.fimPaginacao){// verifica se não é a última página
-									GUI.paginaAtual--;
-									arquivoDeVendas.fecharArquivoParaLeitura();
-									arquivoDeVendas.abrirArquivoParaLeitura();
-									arquivoDeVendas.recuperarArquivoPaginacaoGUI(qtdRegistroPorPagina);
-								}
-								arquivoDeVendas.fecharArquivoParaLeitura();
-								GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n   " + "Página: " + (GUI.paginaAtual+1)+"/"+GUI.totalPaginacao);
-						}
-					});
-					
-					long tempoInicial = Calendar.getInstance().getTimeInMillis();
-					
-					arquivoDeVendas.abrirArquivoParaLeitura();
-					if(qtdRegistroPorPagina > 0){// Leitura com paginação
-						long quantidadeTotalDeLinhas = arquivoDeVendas.quantidadeDeLinhasDoArquivo();// Busca quantas linhas tem o arquivo
-						
-						totalPaginacao = (int) (quantidadeTotalDeLinhas / qtdRegistroPorPagina);// Divide a paginação escolhida pelo usuário pela quantidade total de linhas
-						if(quantidadeTotalDeLinhas % qtdRegistroPorPagina  != 0) {// Se a divisão sobrar resto, adiciona uma página
-							totalPaginacao++;
-						}
-						arquivoDeVendas.recuperarArquivoPaginacaoGUI(qtdRegistroPorPagina);// Lê arquivo com a paginação passada por parâmetro
-						arquivoDeVendas.fecharArquivoParaLeitura();
-						long tempoExecucao = Calendar.getInstance().getTimeInMillis() - tempoInicial;
-						GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n\nTempo de Execução: "+tempoExecucao+" milissegundos");
-						GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n###########################################################################################################################\n");
-						
-						GUI.campoDeInformacoesGerais.setText(GUI.campoDeInformacoesGerais.getText() + "\n###########################################################################################################################");
-						GUI.campoDeInformacoesGerais.setText(GUI.campoDeInformacoesGerais.getText() + "\nOpção selecionada: Leitura por paginação");
-						GUI.campoDeInformacoesGerais.setText(GUI.campoDeInformacoesGerais.getText() + "\nTempo de execução: "+tempoExecucao+" milissegundos");
-						GUI.campoDeInformacoesGerais.setText(GUI.campoDeInformacoesGerais.getText() + "\n###########################################################################################################################\n");
+				final int qtdRegistroPorPagina = Integer.parseInt(campoDeEntradaDoUsuarioPaginacao.getText().trim()); // verifica a qntd. de registros por página
+				final int qtdDeListas = Integer.parseInt(campoDeEntradaDoUsuarioListas.getText().trim()); // verifica a qntd. de Listas
 				
-						GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n   " + "Página: " + (GUI.paginaAtual+1)+"/"+GUI.totalPaginacao);
-						JOptionPane.showOptionDialog(null, outScrollInformacoesDeRetorno, "Leitura - Paginação", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, new Object[] {btnAnterior, btnProximo}, null);
-					}else{ // Leitura sem paginação
-						GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n###########################################################################################################################");
-						GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\nOpção selecionada: Consultar base");
-						GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n\nRegistros: ");
-						arquivoDeVendas.recuperarArquivoGUIIndexados();// Lê arquivo todo
-						arquivoDeVendas.fecharArquivoParaLeitura();
-						long tempoExecucao = Calendar.getInstance().getTimeInMillis() - tempoInicial;
-						GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n\nTempo de Execução: "+tempoExecucao+" milissegundos");
-						GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n###########################################################################################################################\n");
-						
-						GUI.campoDeInformacoesGerais.setText(GUI.campoDeInformacoesGerais.getText() + "\n###########################################################################################################################");
-						GUI.campoDeInformacoesGerais.setText(GUI.campoDeInformacoesGerais.getText() + "\nOpção selecionada: Leitura completa");
-						GUI.campoDeInformacoesGerais.setText(GUI.campoDeInformacoesGerais.getText() + "\nTempo de execução: "+tempoExecucao+" milissegundos");
-						GUI.campoDeInformacoesGerais.setText(GUI.campoDeInformacoesGerais.getText() + "\n###########################################################################################################################\n");
-				
-						
-						JOptionPane.showOptionDialog(null, outScrollInformacoesDeRetorno, "Leitura - Total", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+				final JButton btnAnterior = new JButton("Anterior"); // Criação do botão anterior
+				btnAnterior.setToolTipText("");
+				btnAnterior.addActionListener(new ActionListener() {// Ação ao usar o botão
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						if(paginaAtual > 0){// Verifica se não é a primeira página 
+							GUI.paginaAtual--;
+							GUI.campoDeRetornoPaginacao.setText(null);
+							arquivoDeVendas.abrirArquivoParaLeituraIndexado();
+							arquivoDeVendas.recuperarArquivoPaginacaoGUIIndexado(qtdRegistroPorPagina);
+							arquivoDeVendas.fecharArquivoParaLeituraIndexado();
+							GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n   " + "Página: " + (GUI.paginaAtual+1)+"/"+GUI.totalPaginacao);
+						}
 					}
+				});
+				
+				final JButton btnProximo = new JButton("Próximo");// Criação do botão próximo
+				btnProximo.setToolTipText("");
+				btnProximo.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+							GUI.paginaAtual++;
+							GUI.campoDeRetornoPaginacao.setText(null);
+							arquivoDeVendas.abrirArquivoParaLeituraIndexado();
+							arquivoDeVendas.recuperarArquivoPaginacaoGUIIndexado(qtdRegistroPorPagina);
+							if(GUI.fimPaginacao){// verifica se não é a última página
+								GUI.paginaAtual--;
+								arquivoDeVendas.fecharArquivoParaLeituraIndexado();
+								arquivoDeVendas.abrirArquivoParaLeituraIndexado();
+								arquivoDeVendas.recuperarArquivoPaginacaoGUIIndexado(qtdRegistroPorPagina);
+							}
+							arquivoDeVendas.fecharArquivoParaLeituraIndexado();
+							GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n   " + "Página: " + (GUI.paginaAtual+1)+"/"+GUI.totalPaginacao);
+					}
+				});
+				
+				long tempoInicial = Calendar.getInstance().getTimeInMillis();
+				
+				arquivoDeVendas.abrirArquivoParaLeitura();
+				if(qtdRegistroPorPagina > 0){// Leitura com paginação
+					
+					arquivoDeVendas.recuperarArquivoGUIIndexados(qtdDeListas, tipoDeOrdenacao);// Lê arquivo todo
+					arquivoDeVendas.fecharArquivoParaLeitura();
+					arquivoDeVendas = null;
+					
+					arquivoDeVendas = new GerenciadorDeArquivo();
+					arquivoDeVendas.abrirArquivoParaLeituraIndexado();
+					arquivoDeVendas.recuperarArquivoPaginacaoGUIIndexado(qtdRegistroPorPagina);
+					long quantidadeTotalDeLinhas = arquivoDeVendas.quantidadeDeLinhasDoArquivo();// Busca quantas linhas tem o arquivo
+					
+					totalPaginacao = (int) (quantidadeTotalDeLinhas / qtdRegistroPorPagina);// Divide a paginação escolhida pelo usuário pela quantidade total de linhas
+					if(quantidadeTotalDeLinhas % qtdRegistroPorPagina  != 0) {// Se a divisão sobrar resto, adiciona uma página
+						totalPaginacao++;
+					}
+					arquivoDeVendas.fecharArquivoParaLeituraIndexado();
+					long tempoExecucao = Calendar.getInstance().getTimeInMillis() - tempoInicial;
+					GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n\nTempo de Execução: "+tempoExecucao+" milissegundos");
+					GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n###########################################################################################################################\n");
+					
+					GUI.campoDeInformacoesGerais.setText(GUI.campoDeInformacoesGerais.getText() + "\n###########################################################################################################################");
+					GUI.campoDeInformacoesGerais.setText(GUI.campoDeInformacoesGerais.getText() + "\nOpção selecionada: Leitura por paginação");
+					GUI.campoDeInformacoesGerais.setText(GUI.campoDeInformacoesGerais.getText() + "\nTempo de execução: "+tempoExecucao+" milissegundos");
+					GUI.campoDeInformacoesGerais.setText(GUI.campoDeInformacoesGerais.getText() + "\n###########################################################################################################################\n");
+			
+					GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n   " + "Página: " + (GUI.paginaAtual+1)+"/"+GUI.totalPaginacao);
+					JOptionPane.showOptionDialog(null, outScrollInformacoesDeRetorno, "Leitura - Paginação", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, new Object[] {btnAnterior, btnProximo}, null);
+				}else{ // Leitura sem paginação
+					GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n###########################################################################################################################");
+					GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\nOpção selecionada: Consultar base");
+					GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n\nRegistros: ");
+					arquivoDeVendas.recuperarArquivoGUIIndexados(qtdDeListas, tipoDeOrdenacao);// Lê arquivo todo
+					arquivoDeVendas.fecharArquivoParaLeitura();
+					arquivoDeVendas = null;
+					
+					arquivoDeVendas = new GerenciadorDeArquivo();
+					arquivoDeVendas.abrirArquivoParaLeituraIndexado();
+					arquivoDeVendas.recuperarArquivoGUIOrdenado();
+					arquivoDeVendas.fecharArquivoParaLeituraIndexado();
+					
+					long tempoExecucao = Calendar.getInstance().getTimeInMillis() - tempoInicial;
+					GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n\nTempo de Execução: "+tempoExecucao+" milissegundos");
+					GUI.campoDeRetornoPaginacao.setText(GUI.campoDeRetornoPaginacao.getText() + "\n###########################################################################################################################\n");
+					
+					GUI.campoDeInformacoesGerais.setText(GUI.campoDeInformacoesGerais.getText() + "\n###########################################################################################################################");
+					GUI.campoDeInformacoesGerais.setText(GUI.campoDeInformacoesGerais.getText() + "\nOpção selecionada: Leitura completa");
+					GUI.campoDeInformacoesGerais.setText(GUI.campoDeInformacoesGerais.getText() + "\nTempo de execução: "+tempoExecucao+" milissegundos");
+					GUI.campoDeInformacoesGerais.setText(GUI.campoDeInformacoesGerais.getText() + "\n###########################################################################################################################\n");
+			
+					
+					JOptionPane.showOptionDialog(null, outScrollInformacoesDeRetorno, "Leitura - Total", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
 				}
 			}
 		});
 
-		JOptionPane.showOptionDialog(null, outScrollInformacoesGerais, "PRA - Vendas", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, new Object[] { btnCriaRegQtd, btnCriaRegTamanho, btnConsultaGeral }, btnCriaRegQtd); // mostrando a página principal
+		JOptionPane.showOptionDialog(null, outScrollInformacoesGerais, "PRA - Vendas", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, new Object[] { btnCriaRegQtd,btnCriaRegTamanho,btnConsultaGeral }, btnConsultaGeral); // mostrando a página principal
 		
 	}
 	

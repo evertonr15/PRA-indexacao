@@ -1,4 +1,4 @@
-package MergeSort;
+
 
 import java.util.ArrayList;
 
@@ -13,28 +13,42 @@ import java.util.PriorityQueue;
 public class Ordena {
 	PriorityQueue<No> fila;
 
-	public Ordena() {
-		fila = new PriorityQueue<No>(50, new NoComparador());
+	public Ordena(int tipoDeOrdenacao) {
+		if(tipoDeOrdenacao == 1){
+			fila = new PriorityQueue<>(50, new NoComparador());
+		} else{
+			fila = new PriorityQueue<>(50, new NoComparadorData());
+		}
 	}
 
-	public List<?> misturaLista(List<List<Integer>> entrada) {
-		List<Integer> saida = new ArrayList<Integer>();
-		if (entrada == null)
+	public List<Pedido> misturaLista(List<List<Pedido>> entrada) {
+		List<Pedido> saida = new ArrayList<>();
+		if (entrada == null || entrada.isEmpty())
 			return null;
-		if (entrada.isEmpty())
-			return entrada;
+
 		int[] indice = new int[entrada.size()];
 		montarPilha(entrada, indice);
+		GerenciadorDeArquivo arquivoDeVendasIndexado = new GerenciadorDeArquivo();
+		arquivoDeVendasIndexado.criarEAbrirArquivoParaEscritaIndexado();
 		while (!fila.isEmpty()) {
 			No no = fila.remove();
-			int listaIndices = no.getIndexList();
-			saida.add(no.getData());
+			int listaIndices = no.getIndexList();			
+			saida.add(no.getPedido());
+			if(saida.size() == 10000){
+				arquivoDeVendasIndexado.salvaPedidoIndexado(saida);
+				saida.clear();
+			}
 			if (indice[listaIndices] < entrada.get(listaIndices).size()) {
 				fila.add(new No(entrada.get(listaIndices).get(indice[listaIndices]),
 						listaIndices));
 				indice[listaIndices] = ++indice[listaIndices];
 			}
 		}
+		if(!saida.isEmpty()){
+			arquivoDeVendasIndexado.salvaPedidoIndexado(saida);
+			saida.clear();
+		}
+		arquivoDeVendasIndexado.fecharArquivoParaEscritaIndexado();
 		return saida;
 		
 	}
@@ -43,7 +57,7 @@ public class Ordena {
     * Creating an initial Heap.
     */
 
-	private void montarPilha(List<List<Integer>> input, int[] indice) {
+	private void montarPilha(List<List<Pedido>> input, int[] indice) {
 
 		for (int i = 0; i < input.size(); i++) {
 			if (!input.get(i).isEmpty()) {

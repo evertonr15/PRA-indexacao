@@ -10,22 +10,13 @@ import java.text.DecimalFormat;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Stream;
-
-import MergeSort.Ordena;
 
 public class GerenciadorDeArquivo {
 
@@ -36,10 +27,20 @@ public class GerenciadorDeArquivo {
 	FileWriter fWriter = null;
 
 	BufferedWriter buffWriter = null;
+	
+	private File arquivoIndexado = null;
+	
+	FileWriter fWriterIndexado = null;
+	
+	BufferedWriter buffWriterIndexado = null;
 
 	FileReader fReader = null;
 
 	BufferedReader buffReader = null;
+	
+	FileReader fReaderIndexado = null;
+
+	BufferedReader buffReaderIndexado = null;
 
 	public void criarEAbrirArquivoParaEscrita() {
 		try {
@@ -79,7 +80,7 @@ public class GerenciadorDeArquivo {
 				informacoesDoPedido += ";" + pedido.getVendedor().getCodigoVendedor();
 				informacoesDoPedido += ";" + pedido.getDataPedido();
 				informacoesDoPedido += ";" + pedido.getTotalDaVenda();
-				informacoesDoPedido += ";" + pedido.getProdutos().toString();
+				//informacoesDoPedido += ";" + pedido.getProdutos().toString();
 
 				buffWriter.write(informacoesDoPedido);
 				buffWriter.newLine();
@@ -99,7 +100,7 @@ public class GerenciadorDeArquivo {
 					informacoesDoPedido += ";" + pedido.getVendedor().getCodigoVendedor();
 					informacoesDoPedido += ";" + pedido.getDataPedido();
 					informacoesDoPedido += ";" + pedido.getTotalDaVenda();
-					informacoesDoPedido += ";" + pedido.getProdutos().toString();
+					//informacoesDoPedido += ";" + pedido.getProdutos().toString();
 					buffWriter.write(informacoesDoPedido);
 					buffWriter.newLine();
 				}
@@ -107,7 +108,57 @@ public class GerenciadorDeArquivo {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	} 
+	}
+	
+	public void criarEAbrirArquivoParaEscritaIndexado() {
+		try {
+			if (arquivoIndexado == null) {
+				arquivoIndexado = new File("PRA-Indexado.txt");
+			}
+
+			if (!arquivoIndexado.createNewFile()) {
+				arquivoIndexado.delete();
+				arquivoIndexado.createNewFile();
+			}
+			fWriterIndexado = new FileWriter(arquivoIndexado, false);
+			buffWriterIndexado = new BufferedWriter(fWriterIndexado);
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public void fecharArquivoParaEscritaIndexado() {
+		try {
+			if (buffWriterIndexado != null) {
+				buffWriterIndexado.close();
+			}
+			if (fWriterIndexado != null) {
+				fWriterIndexado.close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void salvaPedidoIndexado(List<Pedido> pedidos) { // Escreve no arquivo por meio de uma lista de pedidos
+		try {
+			if (buffWriterIndexado != null) {
+				String informacoesDoPedido = "";
+				for (Pedido pedido : pedidos) {
+					informacoesDoPedido = "" + pedido.getCodigoPedido();
+					informacoesDoPedido += ";" + pedido.getCliente().getCodigoCliente();
+					informacoesDoPedido += ";" + pedido.getVendedor().getCodigoVendedor();
+					informacoesDoPedido += ";" + pedido.getDataPedido();
+					informacoesDoPedido += ";" + pedido.getTotalDaVenda();
+					informacoesDoPedido += ";" + pedido.getProdutos().toString();
+					buffWriterIndexado.write(informacoesDoPedido);
+					buffWriterIndexado.newLine();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	public void abrirArquivoParaLeitura() {
 		try {
@@ -125,6 +176,28 @@ public class GerenciadorDeArquivo {
 			}
 			if (buffReader != null) {
 				buffReader.close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void abrirArquivoParaLeituraIndexado() {
+		try {
+			fReaderIndexado = new FileReader("PRA-Indexado.txt");
+			buffReaderIndexado = new BufferedReader(fReaderIndexado);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void fecharArquivoParaLeituraIndexado() {
+		try {
+			if (fReaderIndexado != null) {
+				fReaderIndexado.close();
+			}
+			if (buffReaderIndexado != null) {
+				buffReaderIndexado.close();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -175,9 +248,10 @@ public class GerenciadorDeArquivo {
 		}
 	}
 	
-	public void recuperarArquivoGUIIndexados() {// Recupera todo o arquivo
+	public void recuperarArquivoGUIIndexados(int quantidadeDeListas, int tipoDeOrdenacao) {// Recupera todo o arquivo
 		String linhaAtual = null;
 		String[] registroDoPedido;
+		List<Produtos> listaDeProdutos = new ArrayList<>();
 		
 		TreeSet<Map.Entry<Integer, Pedido>> pedidos = new TreeSet<>(new Comparator<Map.Entry<Integer, Pedido>>()
 		  {
@@ -185,45 +259,243 @@ public class GerenciadorDeArquivo {
 		    public int compare(Map.Entry<Integer, Pedido> o1, Map.Entry<Integer, Pedido> o2)
 		    {
 		      int valueComparison = o1.getValue().getCodigoCliente().compareTo(o2.getValue().getCodigoCliente());
-		      return valueComparison == 0 ? o1.getKey().compareTo(o2.getKey()) : valueComparison;
+		      
+		      if(valueComparison == 0){
+		    	  Date dataDoPedido1 = new Date(o1.getValue().getDataPedido());
+		    	  Date dataDoPedido2 = new Date(o2.getValue().getDataPedido());
+					
+		    	  return dataDoPedido1.compareTo(dataDoPedido2);
+		      } else {
+		    	  return valueComparison;  
+		      }
 		    }
 		  });
 		
 		try {
 			while ((linhaAtual = buffReader.readLine()) != null) {// enquanto não ler até a ultima linha
-				List<Produtos> listaDeProdutos = new ArrayList<>();
 				registroDoPedido = linhaAtual.split(";");
 
 				Calendar data = Calendar.getInstance();
 				data.setTime(new Date(registroDoPedido[3]));
+				
 				pedidos.add(new AbstractMap.SimpleEntry<>(Integer.valueOf(registroDoPedido[0]), new Pedido(Integer.valueOf(registroDoPedido[0]), new Vendedor(Integer.valueOf(registroDoPedido[2])), new Cliente(Integer.valueOf(registroDoPedido[1])), data, listaDeProdutos)));
 			}
 			
-			List<Integer> listaCdClienteA = new ArrayList<>();
-			List<Integer> listaCdClienteB = new ArrayList<>();
-			
 			int i = 0;
 			int countPedidos = pedidos.size();
-			for (Entry<?, Pedido> codigoPedido : pedidos){
-				if(i < countPedidos / 2){
-					listaCdClienteA.add(codigoPedido.getValue().getCliente().getCodigoCliente());
-				} else {
-					listaCdClienteB.add(codigoPedido.getValue().getCliente().getCodigoCliente());
-				}
-				
-				i++;
-			}
-			pedidos.clear();
+			int quantidadeDeItensPorLista = countPedidos / quantidadeDeListas;
+			List<List<Pedido>> listasDePedidos = new ArrayList<>();
+			List<Pedido> listaCdClienteA = new ArrayList<>();
+			List<Pedido> listaCdClienteB = new ArrayList<>();
+			List<Pedido> listaCdClienteC = new ArrayList<>();
+			List<Pedido> listaCdClienteD = new ArrayList<>();
+			List<Pedido> listaCdClienteE = new ArrayList<>();
+			List<Pedido> listaCdClienteF = new ArrayList<>();
+			List<Pedido> listaCdClienteG = new ArrayList<>();
+			List<Pedido> listaCdClienteH = new ArrayList<>();
 			
-			List<List<Integer>> listasDePedidos = new ArrayList<>();
-			listasDePedidos.add(listaCdClienteA);
-			listasDePedidos.add(listaCdClienteB);   
+			switch (quantidadeDeListas) {
+				case 2:
+					for (Entry<?, Pedido> codigoPedido : pedidos){
+						if(i <= quantidadeDeItensPorLista){
+							listaCdClienteA.add(codigoPedido.getValue());
+						} else {
+							listaCdClienteB.add(codigoPedido.getValue());
+						}
+						i++;
+					}
+					listasDePedidos.add(listaCdClienteA);
+					listasDePedidos.add(listaCdClienteB);
+					break;
+				case 3:
+					for (Entry<?, Pedido> codigoPedido : pedidos){
+						if(i <= quantidadeDeItensPorLista){
+							listaCdClienteA.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 2){
+							listaCdClienteB.add(codigoPedido.getValue());
+						} else {
+							listaCdClienteC.add(codigoPedido.getValue());
+						}
+						i++;
+					}
+					listasDePedidos.add(listaCdClienteA);
+					listasDePedidos.add(listaCdClienteB);
+					listasDePedidos.add(listaCdClienteC);
+					break;
+				case 4:
+					for (Entry<?, Pedido> codigoPedido : pedidos){
+						if(i <= quantidadeDeItensPorLista){
+							listaCdClienteA.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 2){
+							listaCdClienteB.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 3){
+							listaCdClienteC.add(codigoPedido.getValue());
+						} else {
+							listaCdClienteD.add(codigoPedido.getValue());
+						}
+						i++;
+					}
+					listasDePedidos.add(listaCdClienteA);
+					listasDePedidos.add(listaCdClienteB);
+					listasDePedidos.add(listaCdClienteC);
+					listasDePedidos.add(listaCdClienteD);
+					break;
+				case 5:
+					for (Entry<?, Pedido> codigoPedido : pedidos){
+						if(i <= quantidadeDeItensPorLista){
+							listaCdClienteA.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 2){
+							listaCdClienteB.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 3){
+							listaCdClienteC.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 4){
+							listaCdClienteD.add(codigoPedido.getValue());
+						} else {
+							listaCdClienteE.add(codigoPedido.getValue());
+						}
+						i++;
+					}
+					listasDePedidos.add(listaCdClienteA);
+					listasDePedidos.add(listaCdClienteB);
+					listasDePedidos.add(listaCdClienteC);
+					listasDePedidos.add(listaCdClienteD);
+					listasDePedidos.add(listaCdClienteE);
+					break;
+				case 6:
+					for (Entry<?, Pedido> codigoPedido : pedidos){
+						if(i <= quantidadeDeItensPorLista){
+							listaCdClienteA.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 2){
+							listaCdClienteB.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 3){
+							listaCdClienteC.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 4){
+							listaCdClienteD.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 5){
+							listaCdClienteE.add(codigoPedido.getValue());
+						} else {
+							listaCdClienteF.add(codigoPedido.getValue());
+						}
+						i++;
+					}
+					listasDePedidos.add(listaCdClienteA);
+					listasDePedidos.add(listaCdClienteB);
+					listasDePedidos.add(listaCdClienteC);
+					listasDePedidos.add(listaCdClienteD);
+					listasDePedidos.add(listaCdClienteE);
+					listasDePedidos.add(listaCdClienteF);
+					break;
+				case 7:
+					for (Entry<?, Pedido> codigoPedido : pedidos){
+						if(i <= quantidadeDeItensPorLista){
+							listaCdClienteA.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 2){
+							listaCdClienteB.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 3){
+							listaCdClienteC.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 4){
+							listaCdClienteD.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 5){
+							listaCdClienteE.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 6){
+							listaCdClienteF.add(codigoPedido.getValue());
+						} else {
+							listaCdClienteG.add(codigoPedido.getValue());
+						}
+						i++;
+					}
+					listasDePedidos.add(listaCdClienteA);
+					listasDePedidos.add(listaCdClienteB);
+					listasDePedidos.add(listaCdClienteC);
+					listasDePedidos.add(listaCdClienteD);
+					listasDePedidos.add(listaCdClienteE);
+					listasDePedidos.add(listaCdClienteF);
+					listasDePedidos.add(listaCdClienteG);
+					break;
+				case 8:
+					for (Entry<?, Pedido> codigoPedido : pedidos){
+						if(i <= quantidadeDeItensPorLista){
+							listaCdClienteA.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 2){
+							listaCdClienteB.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 3){
+							listaCdClienteC.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 4){
+							listaCdClienteD.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 5){
+							listaCdClienteE.add(codigoPedido.getValue());
+						} else if(i <= quantidadeDeItensPorLista * 6){
+							listaCdClienteF.add(codigoPedido.getValue());
+						}  else if(i <= quantidadeDeItensPorLista * 7){
+							listaCdClienteG.add(codigoPedido.getValue());
+						} else {
+							listaCdClienteH.add(codigoPedido.getValue());
+						}
+						i++;
+					}
+					listasDePedidos.add(listaCdClienteA);
+					listasDePedidos.add(listaCdClienteB);
+					listasDePedidos.add(listaCdClienteC);
+					listasDePedidos.add(listaCdClienteD);
+					listasDePedidos.add(listaCdClienteE);
+					listasDePedidos.add(listaCdClienteF);
+					listasDePedidos.add(listaCdClienteG);
+					listasDePedidos.add(listaCdClienteH);
+					break;
+			}
+			
+			pedidos.clear();
 		    
-			Ordena indexacao = new Ordena();
-			System.out.println("Merged List:" + indexacao.misturaLista(listasDePedidos));
+			Ordena indexacao = new Ordena(tipoDeOrdenacao);
+			indexacao.misturaLista(listasDePedidos);
+			listaCdClienteA.clear();
+			listaCdClienteB.clear();
+			listaCdClienteC.clear();
+			listaCdClienteD.clear();
+			listaCdClienteE.clear();
+			listaCdClienteF.clear();
+			listaCdClienteG.clear();
+			listaCdClienteH.clear();
+			listasDePedidos.clear();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+	}
+	
+	/*
+	 * registroDoPedido:
+	 * 
+	 * 0-codigoPedido 
+	 * 1-cliente.getCodigoCliente() 
+	 * 2-vendedor.getCodigoVendedor()
+	 * 3-dataDoPedido 
+	 * 4-totalDaVenda 
+	 * 5-produtos.toString()
+	 */
+	public void recuperarArquivoGUIOrdenado() {// Recupera todo o arquivo
+		String linhaAtual = null;
+		DecimalFormat decimalFormater = new DecimalFormat("#,###.00");
+		StringBuilder retornoDaLeitura = new StringBuilder();
+		String[] registroDoPedido;
+		String produtosToString;
+		String[] produtos;
+		String[] produtosSplit;
+		abrirArquivoParaLeituraIndexado();
+		try {
+			while ((linhaAtual = buffReaderIndexado.readLine()) != null) {// enquanto não ler até a ultima linha
+				registroDoPedido = linhaAtual.split(";");
+
+				retornoDaLeitura.append("\nCódigo do pedido: " + registroDoPedido[0]);
+				retornoDaLeitura.append("\nCódigo do vendedor: " + registroDoPedido[2]);
+				retornoDaLeitura.append("\nData do pedido: " + registroDoPedido[3]);
+				retornoDaLeitura.append("\nCódigo do Cliente: " + registroDoPedido[1]);
+				retornoDaLeitura.append("\n");
+			}
+			GUI.campoDeRetornoPaginacao.setText(retornoDaLeitura.toString());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		fecharArquivoParaLeituraIndexado();
 	}
 
 	/*
@@ -278,6 +550,50 @@ public class GerenciadorDeArquivo {
 			ex.printStackTrace();
 		}
 	}
+	
+	
+	/*
+	 * registroDoPedido:
+	 * 
+	 * 0-codigoPedido 
+	 * 1-cliente.getCodigoCliente() 
+	 * 2-vendedor.getCodigoVendedor()
+	 * 3-dataDoPedido 
+	 * 4-totalDaVenda 
+	 * 5-produtos.toString()
+	 */
+	public void recuperarArquivoPaginacaoGUIIndexado(int qtdRegistroPagina) {// Recupera arquivo com paginação
+		String informacaoLinhaAtual = null;
+		DecimalFormat decimalFormater = new DecimalFormat("#,###.00");
+		StringBuilder retornoDaLeitura = new StringBuilder();
+		String[] registroDoPedido;
+		String produtosToString;
+		String[] produtos;
+		String[] produtosSplit;
+		GUI.fimPaginacao = true;
+		try {
+			int posicaoLinhaDeOrigem = qtdRegistroPagina * GUI.paginaAtual;// Multiplica a quantidade de registro por páginas selecionada pelo usuário pelo número da página atual para saber a partir de qual linha será lido o registro 
+			int posicaoLinhaAtual = 0;
+			while (posicaoLinhaAtual < posicaoLinhaDeOrigem && (informacaoLinhaAtual = buffReaderIndexado.readLine()) != null) {// Enquanto não chegar na linha calculada e ainda tiver linhas no arquivo
+				posicaoLinhaAtual++;
+			}
+			posicaoLinhaAtual = 0;
+			while ((informacaoLinhaAtual = buffReaderIndexado.readLine()) != null && posicaoLinhaAtual < qtdRegistroPagina) { //Enquanto não atingir a quantidade de linhas da paginação e ainda tiver linhas
+				GUI.fimPaginacao = false;// Informa que não está na última página
+				registroDoPedido = informacaoLinhaAtual.split(";");
+
+				retornoDaLeitura.append("\nCódigo do pedido: " + registroDoPedido[0]);
+				retornoDaLeitura.append("\nCódigo do vendedor: " + registroDoPedido[2]);
+				retornoDaLeitura.append("\nData do pedido: " + registroDoPedido[3]);
+				retornoDaLeitura.append("\nCódigo do Cliente: " + registroDoPedido[1]);
+				retornoDaLeitura.append("\n");
+				posicaoLinhaAtual++;
+			}
+			GUI.campoDeRetornoPaginacao.setText(retornoDaLeitura.toString());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
 
 	public long tamanhoDoArquivo() {
 		return arquivo != null ? arquivo.length() : 0;
@@ -285,10 +601,10 @@ public class GerenciadorDeArquivo {
 
 	public long quantidadeDeLinhasDoArquivo() {
 		long numOfLines = 0;
-		if (arquivo == null) {
-			arquivo = new File(nomeDoArquivo);
+		if (arquivoIndexado == null) {
+			arquivoIndexado = new File("PRA-Indexado.txt");
 		}
-		try (Stream<String> lines = Files.lines(arquivo.toPath(), Charset.defaultCharset())) {
+		try (Stream<String> lines = Files.lines(arquivoIndexado.toPath(), Charset.defaultCharset())) {
 			numOfLines = lines.count();
 		} catch (IOException e) {
 			e.printStackTrace();
